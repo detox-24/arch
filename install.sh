@@ -129,11 +129,26 @@ cat <<EOT > /etc/hosts
 ::1         localhost
 127.0.1.1   $USERNAME-pc.localdomain $USERNAME-pc
 EOT
-
+gum style --foreground 8 "Set Root Password"
 passwd
 
-useradd -m -G wheel -s /bin/$SHELL "$USERNAME"
+#------------------------------!!SHELL SETUP!!------------------------------------
+if [[ "$SHELL" == "fish" ]]; then
+  gum style --foreground 8 "Installing Friendly Interactive SHell..."
+  pacman -S fish --noconfirm
+
+  SHELL_PATH="/usr/bin/fish"
+  if ! grep -q "$SHELL_PATH" /etc/shells; then
+    echo "$SHELL_PATH" >> /etc/shells
+  fi
+else
+  SHELL_PATH="/bin/bash"
+fi
+
+useradd -m -G wheel -s "$SHELL_PATH" "$USERNAME"
+gum style --foreground 8 "Set User password"
 passwd "$USERNAME"
+chsh -s "$SHELL_PATH" "$USERNAME"
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
 #-------------------------!!BOOTLOADER!!------------------------------------------
@@ -153,11 +168,8 @@ elif [[ "$DESKTOP" == "KDE" ]]; then
   systemctl enable sddm
 fi
 
-#------------------------------!!SHELL SETUP!!------------------------------------
-if [[ "$SHELL" == "fish" ]]; then
-  gum style --foreground 8 "Installing Friendly Interactive SHell..."
-  pacman -S fish --noconfirm
-fi
+gum style --foreground 10 "Cleaning up..."
+
 pacman -Rns --noconfirm gum
 rm /.installer_*
 rm /postinstall.sh
