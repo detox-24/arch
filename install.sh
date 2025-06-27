@@ -130,17 +130,7 @@ cat <<EOT > /etc/hosts
 127.0.1.1   $USERNAME-pc.localdomain $USERNAME-pc
 EOT
 gum style --foreground 8 "Set Root Password"
-ATTEMPTS=0
-while ! passwd && [[ $ATTEMPTS -lt 3 ]]; do
-  ((ATTEMPTS++))
-  gum style --foreground 1 "Password setup failed. Attempt $ATTEMPTS of 3."
-done
-
-if [[ $ATTEMPTS -eq 3 ]]; then
-  gum style --foreground 1 "Too many failed attempts. Exiting..."
-  exit 1
-fi
-
+passwd
 #------------------------------!!SHELL SETUP!!------------------------------------
 if [[ "$SHELL" == "fish" ]]; then
   gum style --foreground 8 "Installing Friendly Interactive SHell..."
@@ -155,16 +145,7 @@ else
 fi
 
 useradd -m -G wheel -s "$SHELL_PATH" "$USERNAME"
-gum style --foreground 8 "Set User password"
-ATTEMPTS=0
-while ! passwd "$USERNAME" && [[ $ATTEMPTS -lt 3 ]]; do
-  ((ATTEMPTS++))
-  gum style --foreground 1 "Password setup failed. Attempt $ATTEMPTS of 3."
-done
-
-if [[ $ATTEMPTS -eq 3 ]]; then
-  gum style --foreground 1 "Too many failed attempts. Exiting..."
-  exit 1
+passwd "$USERNAME"
 chsh -s "$SHELL_PATH" "$USERNAME"
 sed -i 's/^# %wheel ALL=(ALL:ALL) ALL/%wheel ALL=(ALL:ALL) ALL/' /etc/sudoers
 
