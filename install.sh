@@ -98,7 +98,6 @@ echo "$SHELL" > /mnt/.installer_shell
 
 #-------------------------!!CHROOT HANDOFF!!----------------------------------------
 cat << 'EOF' > /mnt/postinstall.sh
-$(cat <<'CHROOT'
 #!/bin/bash
 set -e
 
@@ -155,8 +154,6 @@ if [[ "$SHELL" == "fish" ]]; then
 fi
 rm /.installer_*
 rm /postinstall.sh
-CHROOT
-)
 EOF
 
 chmod +x /mnt/postinstall.sh
