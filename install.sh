@@ -92,6 +92,9 @@ done
 gum style --foreground 14 --border double --padding "1 2" "Installing base system..."
 pacstrap -K /mnt base base-devel linux linux-firmware vim sudo networkmanager git
 
+gum style --foreground 14 "Generating fstab..."
+genfstab -U /mnt >> /mnt/etc/fstab
+
 echo "$USERNAME" > /mnt/.installer_username
 echo "$DESKTOP" > /mnt/.installer_desktop
 echo "$SHELL" > /mnt/.installer_shell
@@ -100,6 +103,9 @@ echo "$SHELL" > /mnt/.installer_shell
 cat << 'EOF' > /mnt/postinstall.sh
 #!/bin/bash
 set -e
+
+echo "Installing gum inside chroot..."
+pacman -Sy --noconfirm gum
 
 #-------------------------!!BASIC CONFIG!!----------------------------------------
 USERNAME=$(cat /.installer_username)
@@ -152,6 +158,7 @@ if [[ "$SHELL" == "fish" ]]; then
   gum style --foreground 8 "Installing Friendly Interactive SHell..."
   pacman -S fish --noconfirm
 fi
+pacman -Rns --noconfirm gum
 rm /.installer_*
 rm /postinstall.sh
 EOF
