@@ -1,3 +1,16 @@
+#!/bin/bash
+set -e
+
+# ------------------------!!GUM SETUP!!----------------------------------
+pacman-key --init
+pacman-key --populate archlinux
+pacman -Sy archlinux-keyring
+if ! command -v gum &>/dev/null; then
+  pacman -Sy --noconfirm gum || {
+    exit 1
+  }
+fi
+
 gum style --foreground 39 --align center --padding "1 2" --border double --border-foreground 33 <<'EOF'
  
 
@@ -12,21 +25,6 @@ gum style --foreground 39 --align center --padding "1 2" --border double --borde
 
 Built by Sathiya 😌
 EOF
-
-
-#!/bin/bash
-set -e
-
-# ------------------------!!GUM SETUP!!----------------------------------
-pacman-key --init
-pacman-key --populate archlinux
-pacman -Sy archlinux-keyring
-if ! command -v gum &>/dev/null; then
-  pacman -Sy --noconfirm gum || {
-    exit 1
-  }
-fi
-
 # ------------------------!!ROOT & NETWORK CHECK!!-----------------------
 if [[ $EUID -ne 0 ]]; then
   gum style --foreground 1 --bold "Requires root access"
