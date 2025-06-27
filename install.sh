@@ -2,6 +2,9 @@
 set -e
 
 # ------------------------!!GUM SETUP!!----------------------------------
+pacman-key --init
+pacman-key --populate archlinux
+pacman -Sy archlinux-keyring
 if ! command -v gum &>/dev/null; then
   pacman -Sy --noconfirm gum || {
     exit 1
@@ -9,57 +12,57 @@ if ! command -v gum &>/dev/null; then
 fi
 
 # ------------------------!!ROOT & NETWORK CHECK!!-----------------------
-gum style --foreground 20 "Heya! You're going to use Arch btw"
+gum style --border double --padding "1 2" --margin "1 2" --foreground 10 --bold --align center "Welcome to Sathiya's Arch Installer"
 
 if [[ $EUID -ne 0 ]]; then
-  gum style --foreground 1 "Requires root access"
+  gum style --foreground 1 --bold "Requires root access"
   exit 1
 fi
 
 ping -c 5 archlinux.org > /dev/null
 if [[ $? -ne 0 ]]; then
-  gum style --foreground 1 "No active internet connection"
+  gum style --foreground 1 --bold "No active internet connection"
   exit 1
 fi
 
 timedatectl set-ntp true
-
-gum style --foreground 10 "Enabled Time Sync"
+gum style --foreground 10 --bold "Enabled Time Sync"
 
 #-------------------------!!USER CHOICE!!--------------------------------
-USERNAME=$(gum input --placeholder "Enter username: ")
+USERNAME=$(gum input --header "Username" --prompt "> ")
 if [[ -z "$USERNAME" ]]; then
-  gum style --foreground 1 "Username cannot be empty"
+  gum style --foreground 1 --bold "Username cannot be empty"
   exit 1
 fi
 
-DESKTOP=$(gum choose "GNOME" "KDE" "Headless")
-SHELL=$(gum choose "bash" "fish")
+DESKTOP=$(gum choose --header "Choose a desktop environment:" "GNOME" "KDE" "Headless")
+SHELL=$(gum choose --header "Choose your preferred shell:" "bash" "fish")
 
 gum confirm "You sure want to nuke /dev/sda and install Arch?" || exit 0
 
-gum style --border normal --margin "1 0" --padding "1 2" --border-foreground 245 <<EOF
+gum style --border double --padding "1 2" --margin "1 1" --border-foreground 245 <<EOF
 
-Summary:
+Installation Summary
 
 - User      : $USERNAME
 - Desktop   : $DESKTOP
 - Shell     : $SHELL
 - Target    : /dev/sda
+
 EOF
 
 gum confirm "Proceed?" || exit 0
 
 #-------------------------!!PARTITIONING!!------------------------------
-gum style --foreground 3 "Launching cfdisk..."
+gum style --border rounded --padding "1 2" --foreground 3 "Launching cfdisk..."
 cfdisk /dev/sda
 
 gum style --foreground 3 "Mounting partitions..."
 
-EFI_PART=$(gum input --placeholder "Enter EFI partition (e.g. /dev/sda1)")
+EFI_PART=$(gum input --header "Enter EFI partition (e.g. /dev/sda1)" --prompt "> ")
 mkfs.fat -F32 "$EFI_PART"
 
-ROOT_PART=$(gum input --placeholder "Enter root partition (e.g. /dev/sda2)")
+ROOT_PART=$(gum input --header "Enter root partition (e.g. /dev/sda2)" --prompt "> ")
 mkfs.ext4 "$ROOT_PART"
 
 mount "$ROOT_PART" /mnt
@@ -69,9 +72,9 @@ mount "$EFI_PART" /mnt/boot
 gum style --foreground 10 "EFI and ROOT mounted!"
 
 while gum confirm "Want to mount another partition?"; do
-  EXTRA_PART=$(gum input --placeholder "Enter partition (e.g. /dev/sda3)")
-  MOUNT_POINT=$(gum input --placeholder "Mount point (e.g. /mnt/home)")
-  FORMAT=$(gum choose "ext4" "xfs" "btrfs" "Dont format")
+  EXTRA_PART=$(gum input --header "Enter partition (e.g. /dev/sda3)" --prompt "> ")
+  MOUNT_POINT=$(gum input --header "Mount point (e.g. /mnt/home)" --prompt "> ")
+  FORMAT=$(gum choose --header "Choose format type:" "ext4" "xfs" "btrfs" "Dont format")
 
   case "$FORMAT" in
     ext4) mkfs.ext4 "$EXTRA_PART";;
@@ -86,7 +89,7 @@ while gum confirm "Want to mount another partition?"; do
 done
 
 #-------------------------!!BASE SYSTEM!!-------------------------------------------------
-gum style --foreground 14 "Installing base system..."
+gum style --foreground 14 --border double --padding "1 2" "Installing base system..."
 pacstrap -K /mnt base base-devel linux linux-firmware vim sudo networkmanager git
 
 echo "$USERNAME" > /mnt/.installer_username
@@ -105,7 +108,7 @@ DESKTOP=$(cat /.installer_desktop)
 SHELL=$(cat /.installer_shell)
 
 ls /usr/share/zoneinfo/
-TIMEZONE=$(gum input --placeholder "Enter your timezone (e.g. Asia/Kolkata)")
+TIMEZONE=$(gum input --header "Enter your timezone (e.g. Asia/Kolkata)" --prompt "> ")
 ln -sf "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
 hwclock --systohc
 
@@ -161,5 +164,5 @@ arch-chroot /mnt /postinstall.sh
 
 #-------------------------------!!REBOOT!!--------------------------------------------
 umount -R /mnt
-gum style --foreground 14 "Installation complete. Rebooting..."
+gum style --foreground 14 --border double --padding "1 2" "Installation complete. Rebooting..."
 reboot
