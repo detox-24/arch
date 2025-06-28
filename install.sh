@@ -11,7 +11,16 @@ if ! command -v gum &>/dev/null; then
   }
 fi
 
-gum style --foreground 39 --align center --padding "1 2" --border double --border-foreground 33 <<'EOF'
+gum style \
+  --foreground 39 \
+  --background 0 \
+  --align center \
+  --width 70 \
+  --padding "1 2" \
+  --margin "1 2" \
+  --border double \
+  --border-foreground 33 \
+  --bold <<'EOF'
  
 
  █████╗ ██████╗  ██████╗██╗  ██╗██╗     ███████╗████████╗
@@ -23,7 +32,6 @@ gum style --foreground 39 --align center --padding "1 2" --border double --borde
                                                          
            ARCHLET — The minimal Arch Installer
 
-Built by Sathiya 😌
 EOF
 # ------------------------!!ROOT & NETWORK CHECK!!-----------------------
 if [[ $EUID -ne 0 ]]; then
@@ -84,27 +92,27 @@ mount "$EFI_PART" /mnt/boot
 gum style --foreground 10 "EFI and ROOT mounted!"
 
 while gum confirm "Want to mount another partition?"; do
-  EXTRA_PART=$(gum input --header "Enter partition (e.g. /dev/sda3)" --prompt "> ")
-  MOUNT_POINT=$(gum input --header "Mount point (e.g. /mnt/home)" --prompt "> ")
+  EXT_PART=$(gum input --header "Enter partition (e.g. /dev/sda3)" --prompt "> ")
+  MNT_POINT=$(gum input --header "Mount point (e.g. /mnt/home)" --prompt "> ")
   FORMAT=$(gum choose --header "Choose format type:" "ext4" "xfs" "btrfs" "Dont format")
 
   case "$FORMAT" in
-    ext4) mkfs.ext4 "$EXTRA_PART";;
-    xfs) mkfs.xfs "$EXTRA_PART";;
-    btrfs) mkfs.btrfs "$EXTRA_PART";;
-    "Dont format") gum style --foreground 3 "Skipping format for $EXTRA_PART";;
+    ext4) mkfs.ext4 "$EXT_PART";;
+    xfs) mkfs.xfs "$EXT_PART";;
+    btrfs) mkfs.btrfs "$EXT_PART";;
+    "Dont format") gum style --foreground 3 "Skipping format for $EXT_PART";;
   esac
 
-  mkdir -p "$MOUNT_POINT"
-  mount "$EXTRA_PART" "$MOUNT_POINT"
-  gum style --foreground 10 "Mounted $EXTRA_PART to $MOUNT_POINT"
+  mkdir -p "$MNT_POINT"
+  mount "$EXT_PART" "$MNT_POINT"
+  gum style --foreground 10 "Mounted $EXT_PART to $MNT_POINT"
 done
 
 #-------------------------!!BASE SYSTEM!!-------------------------------------------------
-gum style --foreground 14 --border double --padding "1 2" "Installing base system..."
+gum style --foreground 14 --border double --bold --padding "1 2" "Installing base system..."
 pacstrap -K /mnt base base-devel linux linux-firmware vim sudo networkmanager git
 
-gum style --foreground 14 "Generating fstab..."
+gum style --foreground 245 --bold "Generating fstab..."
 genfstab -U /mnt >> /mnt/etc/fstab
 
 echo "$USERNAME" > /mnt/.installer_username
@@ -190,5 +198,18 @@ arch-chroot /mnt /postinstall.sh
 
 #-------------------------------!!REBOOT!!--------------------------------------------
 umount -R /mnt
-gum style --foreground 14 --border double --padding "1 2" "Installation complete. Rebooting..."
-reboot
+gum style --foreground 14 --border double --padding "1 2" <<'EOF'
+Installation complete.
+
+Thanks for choosing Archlet!
+
+Like it? Star it on Github
+Love it? Would love your contributions
+
+Built by Sathiya Moorthi Periasamy Thuran
+
+https://github.com/detox-24/archlet
+
+EOF
+
+gum confirm "Reboot now?" && reboot || gum style --foreground 8 "Dropping off to terminal!"
