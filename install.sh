@@ -212,4 +212,6 @@ https://github.com/detox-24/archlet
 
 EOF
 
+gum style --foreground 14 "You're using Arch,btw (◡ ‿ ◡ .)"
+
 gum confirm "Reboot now?" && reboot || gum style --foreground 8 "Dropping off to terminal!"
