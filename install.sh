@@ -127,13 +127,25 @@ set -e
 echo "Installing gum inside chroot..."
 pacman -Sy --noconfirm gum
 
+gum style --foreground 3 --bold  "Setting up mirrors and keyrings..."
+
+pacman -Sy --noconfirm archlinux-keyring || true
+
+if ! command -v reflector &>/dev/null; then
+  pacman -S --noconfirm reflector
+fi
+
+reflector --age 12 --protocol https --sort rate --save /etc/pacman.d/mirrorlist
+
+pacman -Syy
+
 #-------------------------!!BASIC CONFIG!!----------------------------------------
 USERNAME=$(cat /.installer_username)
 DESKTOP=$(cat /.installer_desktop)
 SHELL=$(cat /.installer_shell)
 
 ls /usr/share/zoneinfo/
-TIMEZONE=$(gum input --header "Enter your timezone (e.g. Asia/Kolkata)" --prompt "> ")
+TIMEZONE=$(gum input --foreground 14 --header "Enter your timezone (e.g. Asia/Kolkata)" --prompt "> ")
 ln -sf "/usr/share/zoneinfo/$TIMEZONE" /etc/localtime
 hwclock --systohc
 
